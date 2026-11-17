@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enhanced QUMAP — Research Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f6f2; --panel:#ffffff; --ink:#1d2228; --muted:#5d6670; --line:#e3e1da;
+  --accent:#0f6e6a; --accent-soft:#e2f0ee; --q:#5b4bb7; --q-soft:#ece9f8;
+  --c:#2f6db3; --c-soft:#e5eef9; --h:#0f6e6a; --warn:#a4570b; --warn-soft:#fbf0e2;
+  --bad:#a8322d; --bad-soft:#f9e6e4; --ok:#2e7d4f; --ok-soft:#e4f3ea;
+  --serif:"Source Serif 4",Georgia,serif; --sans:"Inter",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#14171a;--panel:#1c2024;--ink:#e7e9eb;--muted:#9aa3ac;--line:#2d3237;
+  --accent:#4fb8b0;--accent-soft:#1d3331;--q:#a597f0;--q-soft:#2a2640;--c:#79a9e3;--c-soft:#1f2a38;--h:#4fb8b0;
+  --warn:#e3a35c;--warn-soft:#3a2c1c;--bad:#ec8a84;--bad-soft:#3b2220;--ok:#6cc38f;--ok-soft:#1d3226;}
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.6 var(--sans)}
+a{color:var(--accent)}
+code{font:13px var(--mono);background:var(--bg);border:1px solid var(--line);padding:0 5px;border-radius:4px}
+nav{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:4px;align-items:center;overflow-x:auto;padding:10px 24px;scrollbar-width:none}
+nav .brand{font:600 15px var(--serif);margin-right:14px;white-space:nowrap}
+nav a{font-size:13px;color:var(--muted);text-decoration:none;padding:5px 10px;border-radius:6px;white-space:nowrap}
+nav a:hover,nav a.on{background:var(--accent-soft);color:var(--accent)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 24px}
+header.hero{padding:60px 0 36px;border-bottom:1px solid var(--line)}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font:700 clamp(32px,5vw,48px)/1.1 var(--serif);margin:12px 0 16px;letter-spacing:-.01em}
+h2{font:700 30px/1.2 var(--serif);margin:0 0 6px}
+h3{font:600 18px/1.3 var(--serif);margin:0 0 6px}
+.lede{font-size:18px;color:var(--muted);max-width:780px;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.chip{font:500 12px var(--mono);padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted)}
+section{padding:56px 0;border-bottom:1px solid var(--line)}
+.sub{color:var(--muted);margin:0 0 26px;max-width:800px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+.card p{margin:6px 0 0;color:var(--muted);font-size:14.5px}
+.kpi .k{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.kpi .v{font:600 28px var(--serif);margin:4px 0 2px}
+.kpi .d{font-size:13px;color:var(--muted)}
+.tag{display:inline-block;font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:4px;margin-bottom:10px}
+.t-c{background:var(--c-soft);color:var(--c)} .t-q{background:var(--q-soft);color:var(--q)} .t-h{background:var(--accent-soft);color:var(--h)}
+.note{border-left:3px solid var(--warn);background:var(--warn-soft);padding:12px 16px;border-radius:0 8px 8px 0;font-size:14.5px;margin:18px 0}
+.note.bad{border-color:var(--bad);background:var(--bad-soft)}
+.note.ok{border-color:var(--ok);background:var(--ok-soft)}
+.note.info{border-color:var(--accent);background:var(--accent-soft)}
+.note b{color:var(--ink)}
+.eq{font:500 16px var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:10px 0;overflow-x:auto}
+.eq small{display:block;font:400 13px var(--sans);color:var(--muted);margin-top:6px}
+.cell{font:500 11px var(--mono);color:var(--muted);white-space:nowrap}
+/* pipeline */
+.pipe{display:flex;flex-wrap:wrap;align-items:stretch}
+.step{flex:1 1 150px;background:var(--panel);border:1px solid var(--line);padding:14px;font-size:13.5px}
+.step:first-child{border-radius:10px 0 0 10px}.step:last-child{border-radius:0 10px 10px 0}
+.step+.step{border-left:none}
+.step .n{font:500 11px var(--mono);color:var(--accent)}
+.step b{display:block;margin:2px 0 4px;font-size:14px}
+.step span{color:var(--muted)}
+/* explorer */
+.explorer{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:24px;align-items:start}
+@media(max-width:760px){.explorer{grid-template-columns:1fr}}
+label.sl{display:block;font-size:13px;color:var(--muted);margin:14px 0 4px}
+label.sl output{float:right;font-family:var(--mono);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.readout{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.ro{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center}
+.ro .k{font:500 11px var(--mono);color:var(--muted)}
+.ro .v{font:600 22px var(--mono)}
+svg text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+/* bars */
+.bars{display:grid;gap:8px;margin:6px 0 4px}
+.bar{display:grid;grid-template-columns:190px 1fr 74px;gap:12px;align-items:center;font-size:14px}
+@media(max-width:560px){.bar{grid-template-columns:120px 1fr 64px;font-size:13px}}
+.track{height:20px;background:var(--bg);border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.fill{height:100%;border-radius:4px 0 0 4px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.f-c{background:var(--c)} .f-q{background:var(--q)} .f-h{background:var(--h)} .f-g{background:var(--muted)}
+.val{font:500 13px var(--mono);text-align:right}
+.legend{display:flex;gap:16px;font-size:12.5px;color:var(--muted);margin:6px 0 18px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+/* table */
+.tw{overflow-x:auto;margin:12px 0}
+table{width:100%;border-collapse:collapse;font-size:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;font-family:var(--mono);font-size:13px;white-space:nowrap}
+th{font:600 11.5px var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--bg)}
+tr:last-child td{border-bottom:none}
+tr.hl td{background:var(--accent-soft)}
+.st{font:500 11px var(--mono);padding:2px 8px;border-radius:4px;white-space:nowrap}
+.s-verify{background:var(--warn-soft);color:var(--warn)} .s-risk{background:var(--bad-soft);color:var(--bad)} .s-ok{background:var(--ok-soft);color:var(--ok)} .s-miss{background:var(--q-soft);color:var(--q)}
+/* tabs */
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tabs button{font:500 13px var(--sans);border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:7px 14px;border-radius:999px;cursor:pointer}
+.tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.panel{display:none}.panel.on{display:block}
+.stage-head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:baseline;margin-bottom:6px}
+ul.clean{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:14.5px}
+ul.clean li{margin:5px 0}
+ul.clean b{color:var(--ink)}
+.paper{counter-reset:p}
+.paper .card{position:relative;padding-left:56px}
+.paper .card::before{counter-increment:p;content:counter(p,decimal-leading-zero);position:absolute;left:18px;top:20px;font:600 14px var(--mono);color:var(--accent)}
+footer{padding:32px 0 60px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <span class="brand">Enhanced QUMAP</span>
+  <a href="#verdict">Verdict</a>
+  <a href="#methods">Methods</a>
+  <a href="#formulation">Formulation</a>
+  <a href="#pipeline">Pipeline</a>
+  <a href="#results">Results</a>
+  <a href="#audit">Audit</a>
+  <a href="#graphs">Patient graphs</a>
+  <a href="#novelty">Contribution</a>
+  <a href="#paper">Roadmap</a>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Research portal · Quantum-inspired dimensionality reduction</div>
+  <h1>Enhanced QUMAP: a hybrid fidelity–Euclidean distance for UMAP</h1>
+  <p class="lede">Does blending a quantum-state-fidelity distance with Euclidean geometry give better patient embeddings than classical UMAP? This portal documents what the notebook actually implements, what each experiment shows, and what the paper can honestly claim.</p>
+  <div class="meta">
+    <span class="chip">WDBC · 569 patients × 30 features</span>
+    <span class="chip">357 benign / 212 malignant</span>
+    <span class="chip">Classifiers · RBF-SVM, Logistic Regression</span>
+    <span class="chip">Seeds · 11, 21, 42, 73, 101</span>
+    <span class="chip">5-fold stratified CV</span>
+    <span class="chip">Python 3.11 · UMAP 0.5.12 · Qiskit 2.1.1</span>
+  </div>
+  <div class="note ok" style="margin-top:26px"><b>Source.</b> Audited against <code>Untitled.ipynb</code> (201 cells, all outputs). Cell numbers below are 0-indexed notebook positions, so you can jump straight to the code. Rows tagged <span class="st s-miss">verified here</span> are checks I ran separately on the same data. They are not notebook results.</div>
+</div></header>
+
+<main class="wrap">
+
+<section id="verdict">
+  <h2>Bottom line</h2>
+  <p class="sub">The hybrid distance fixes original QUMAP and matches classical UMAP. It does not beat UMAP on classification under the leakage-safe protocols. Its consistent advantage is tighter class separation (silhouette), and it pays for that with slightly lower trustworthiness and about 3× the runtime.</p>
+  <div class="grid g4">
+    <div class="card kpi"><div class="k">Repairs fidelity-only QUMAP</div><div class="v" style="color:var(--ok)">68.4 → 95.6%</div><div class="d">Held-out accuracy, 114 test patients, LR <span class="cell">cell 127</span></div></div>
+    <div class="card kpi"><div class="k">vs UMAP, leak-safe 5-fold CV</div><div class="v">95.82 = 95.82%</div><div class="d">α = 0.50 ties UMAP exactly <span class="cell">cell 149</span></div></div>
+    <div class="card kpi"><div class="k">vs UMAP, all 569 patients</div><div class="v" style="color:var(--bad)">95.78 &lt; 96.49%</div><div class="d">Out-of-fold + test predictions <span class="cell">cell 165</span></div></div>
+    <div class="card kpi"><div class="k">Silhouette gain (α = 0.50)</div><div class="v" style="color:var(--ok)">+0.10</div><div class="d">0.624 vs 0.529 over 5 seeds <span class="cell">cell 128</span></div></div>
+  </div>
+  <div class="note bad"><b>About the 98.55% headline.</b> On the final 69-patient test set <span class="cell">(cell 161)</span>, UMAP misclassifies 2 patients and Enhanced QUMAP misclassifies 1. The entire 98.55 vs 97.10 gap is <b>one patient</b>. On all 569 patients (cell 165), Enhanced QUMAP makes 24 errors against UMAP's 20. Report it as a single-split observation, not as the main result.</div>
+</section>
+
+<section id="methods">
+  <h2>Methods as implemented</h2>
+  <p class="sub">Every quantum method runs as an exact classical simulation, with no hardware and no shot noise. All methods are fit on the training set, and the test set is only transformed (Stage A, cells 4–15).</p>
+  <div class="grid g3">
+    <div class="card"><span class="tag t-c">Classical</span><h3>PCA <span class="cell">cell 7</span></h3><p>30 → 10 components, 95.21% explained variance.</p></div>
+    <div class="card"><span class="tag t-c">Classical</span><h3>UMAP <span class="cell">cell 9</span></h3><p>n_neighbors 15, min_dist 0.1, Euclidean metric, 30 → 10.</p></div>
+    <div class="card"><span class="tag t-c">Classical</span><h3>Autoencoder <span class="cell">cell 11</span></h3><p>30→16→10→16→30 (Keras), 100 epochs, latent layer used as the embedding. Test MSE 0.123.</p></div>
+    <div class="card"><span class="tag t-q">Quantum-inspired</span><h3>QPCA-inspired <span class="cell">cell 8</span></h3><p>ρ = Cov / tr(Cov), then an eigendecomposition. Dividing by the trace doesn't change the eigenvectors, so this <b>is PCA</b>: same 95.2069% variance, same predictions.</p></div>
+    <div class="card"><span class="tag t-q">Quantum-inspired</span><h3>Original QUMAP <span class="cell">cell 10</span></h3><p>UMAP with a Python-callable metric D<sub>Q</sub> = 1 − |⟨x̂, ŷ⟩|². Fit on train, <code>.transform</code> on test.</p></div>
+    <div class="card"><span class="tag t-q">Quantum · statevector sim</span><h3>Quantum Autoencoder <span class="cell">cell 12</span></h3><p>5 qubits (30 features zero-padded to 32 amplitudes), 2 RY/RZ + CNOT-ring layers, 20 parameters. COBYLA trained on 100 of the 455 training patients and stopped at max iterations, <b>not converged</b> (loss 0.78 → 0.47). The latent vector is |amplitudes| of the trash = |00⟩ block (8-D, unnormalised, phase dropped).</p></div>
+    <div class="card" style="grid-column:1/-1;border-color:var(--accent)"><span class="tag t-h">Proposed</span><h3>Enhanced (Hybrid) QUMAP <span class="cell">cells 126–129, 145, 149, 157</span></h3><p>The same UMAP settings with D<sub>H</sub> = α·D<sub>Q</sub> + (1−α)·‖x−y‖/s. The scale s is the <b>median</b> pairwise training distance in cells 126–145 and the <b>mean</b> in cells 149–177. α ∈ {0.25, 0.50, 0.75} was swept, and α = 0.50 was used for the final model and the graphs.</p></div>
+  </div>
+</section>
+
+<section id="formulation">
+  <h2>Mathematical formulation</h2>
+  <p class="sub">The formulation is kept exactly as written in the notebook. The notes beside it describe properties the paper should state.</p>
+  <div class="grid g2">
+    <div>
+      <div class="eq">|ψ<sub>x</sub>⟩ = x / ‖x‖<small>Amplitude encoding of the standardised 30-D vector.</small></div>
+      <div class="eq">F(x,y) = |⟨ψ<sub>x</sub>|ψ<sub>y</sub>⟩|² = cos²θ<sub>xy</sub><small>For real vectors, fidelity is the squared cosine similarity.</small></div>
+      <div class="eq">D<sub>Q</sub> = 1 − F = sin²θ<sub>xy</sub></div>
+      <div class="eq">D<sub>E</sub> = ‖x − y‖ / s,&nbsp; s = median or mean of training ‖x<sub>i</sub>−x<sub>j</sub>‖<small>Train-only scale: s = 6.32 (median, 455 patients); s = 6.99 (mean, 500 patients).</small></div>
+      <div class="eq">D<sub>H</sub> = α·D<sub>Q</sub> + (1−α)·D<sub>E</sub></div>
+    </div>
+    <div>
+      <div class="note bad"><b>Why fidelity alone fails (shown in the notebook).</b> Cell 123 confirms D<sub>Q</sub>(x, −x) = 0. Opposite vectors count as identical, and magnitude is discarded. Measured consequences:
+        <ul class="clean">
+          <li>Rank correlation with Euclidean distance: <b>ρ = 0.080</b> (cell 125)</li>
+          <li>Only <b>49%</b> of top-10 neighbours agree with Euclidean (cell 114)</li>
+          <li>Same-class neighbours drop from <b>93.2% to 73.1%</b> (cell 125)</li>
+          <li>Stage A SVM predicts <b>every test patient benign</b> (72/0, 42/0), so accuracy 63.16% equals the benign rate</li>
+        </ul></div>
+      <div class="note"><b>The two terms are on different scales.</b> D<sub>Q</sub> lies in [0, 1] with std 0.205. D<sub>E</sub>/mean spans 0 to 3.8 with std 0.478 <span class="st s-miss">verified here</span>. At α = 0.50 the Euclidean term still dominates: the hybrid's 15 nearest neighbours overlap <b>81%</b> with pure-Euclidean neighbours (Spearman 0.92). For α = 0.25 the figures are 90% and 0.99, and for α = 0.75 they are 71% and 0.61. So α does not mean "50% fidelity", and the paper should say so.</div>
+      <div class="note"><b>Metric status.</b> 1 − F breaks the triangle inequality. UMAP's nearest-neighbour search tolerates this, but state it.</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:34px">Interactive: distance explorer</h3>
+  <p class="sub" style="margin-bottom:16px">Set the angle between two patient vectors and their scaled Euclidean distance, then see how α blends the two. D<sub>E</sub> runs to 3.8 here, matching the observed range in the data.</p>
+  <div class="card explorer">
+    <div>
+      <label class="sl">Angle θ between ψ<sub>x</sub> and ψ<sub>y</sub> <output id="oTheta">60°</output></label>
+      <input type="range" id="theta" min="0" max="180" value="60">
+      <label class="sl">Scaled Euclidean D<sub>E</sub> = ‖x−y‖/s <output id="oDE">1.00</output></label>
+      <input type="range" id="de" min="0" max="380" value="100">
+      <label class="sl">α (weight on fidelity) <output id="oA">0.50</output></label>
+      <input type="range" id="alpha" min="0" max="100" value="50" step="5">
+      <div class="readout">
+        <div class="ro"><div class="k">D_Q</div><div class="v" id="vQ">–</div></div>
+        <div class="ro"><div class="k">D_E</div><div class="v" id="vE">–</div></div>
+        <div class="ro" style="border-color:var(--accent)"><div class="k">D_H</div><div class="v" id="vH" style="color:var(--accent)">–</div></div>
+      </div>
+      <p id="hint" style="font-size:13px;color:var(--muted);margin:14px 0 0"></p>
+    </div>
+    <div><svg id="curve" viewBox="0 0 520 260" width="100%" role="img" aria-label="D_Q versus angle"></svg></div>
+  </div>
+</section>
+
+<section id="pipeline">
+  <h2>Experimental pipeline</h2>
+  <p class="sub">The notebook runs in six stages. They use two different splits and two classifiers, so numbers from different stages should not be put in one table.</p>
+  <div class="pipe">
+    <div class="step"><div class="n">A · 4–15</div><b>6-method benchmark</b><span>455/114 split, RBF-SVM, 10-D (QAE 8-D)</span></div>
+    <div class="step"><div class="n">B · 112–126</div><b>Diagnose + α sweep</b><span>Neighbour diagnostics; train-only embeddings</span></div>
+    <div class="step"><div class="n">C–D · 127–128</div><b>Held-out + seeds</b><span>114 test, LR, 5 seeds</span></div>
+    <div class="step"><div class="n">E · 129–152</div><b>5-fold CV</b><span>Within the 455; fold-wise scaler (144+)</span></div>
+    <div class="step"><div class="n">F · 153–180</div><b>Final model</b><span>500/69 split, LR, α=0.50, 10-D and 2-D, OOF</span></div>
+    <div class="step"><div class="n">G · 181–200</div><b>Patient graphs</b><span>UMAP fuzzy graph on all 569, NetworkX</span></div>
+  </div>
+  <div class="note info"><b>How the two splits relate</b> <span class="st s-miss">verified here</span>. The final 69 test patients (Stage F) are a strict subset of the Stage A 114 test patients. They never entered the 455-patient pool used for α cross-validation, so the α choice did not touch the final test set. The same 114 patients were, however, used repeatedly in Stages C–D to compare α values.</div>
+  <div class="note"><b>Complexity.</b> Each method calls a Python-callable metric on every pair: O(n²·d) time, with no numba acceleration. That is why the hybrid costs about 6–7 s against about 2 s for UMAP (cell 128). It's trivial at n = 569 but won't scale without a numba-compiled metric.</div>
+</section>
+
+<section id="results">
+  <h2>Results by stage</h2>
+  <p class="sub">The numbers below are copied from notebook outputs. Each tab is one internally consistent protocol.</p>
+  <div class="legend"><span><i style="background:var(--c)"></i>Classical</span><span><i style="background:var(--q)"></i>Quantum / quantum-inspired</span><span><i style="background:var(--h)"></i>Hybrid (proposed)</span><span><i style="background:var(--muted)"></i>No reduction</span></div>
+
+  <div class="tabs" role="tablist">
+    <button class="on" data-p="sA">A · 6-method SVM</button>
+    <button data-p="sB">B · α sweep</button>
+    <button data-p="sC">C–D · Held-out &amp; seeds</button>
+    <button data-p="sE">E · 5-fold CV</button>
+    <button data-p="sF">F · Final 500/69</button>
+  </div>
+
+  <div class="panel on" id="sA">
+    <div class="stage-head"><h3>Stage A: test accuracy, RBF-SVM, 114 test patients</h3><span class="cell">cells 13–15</span></div>
+    <div class="bars" data-set="sA"></div>
+    <div class="tw"><table>
+      <tr><th>Method</th><th class="n">Dim</th><th class="n">Acc</th><th class="n">Prec (M)</th><th class="n">Recall (M)</th><th class="n">F1</th><th class="n">DR time (s)</th></tr>
+      <tr><td>Original features</td><td class="n">30</td><td class="n">97.37</td><td class="n">100.0</td><td class="n">92.86</td><td class="n">96.30</td><td class="n">–</td></tr>
+      <tr><td>PCA</td><td class="n">10</td><td class="n">96.49</td><td class="n">100.0</td><td class="n">90.48</td><td class="n">95.00</td><td class="n">0.02</td></tr>
+      <tr><td>QPCA-inspired</td><td class="n">10</td><td class="n">96.49</td><td class="n">100.0</td><td class="n">90.48</td><td class="n">95.00</td><td class="n">0.02</td></tr>
+      <tr><td>UMAP</td><td class="n">10</td><td class="n">93.86</td><td class="n">97.30</td><td class="n">85.71</td><td class="n">91.14</td><td class="n">40.28*</td></tr>
+      <tr><td>Original QUMAP</td><td class="n">10</td><td class="n">63.16</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">8.32</td></tr>
+      <tr><td>Autoencoder</td><td class="n">10</td><td class="n">97.37</td><td class="n">100.0</td><td class="n">92.86</td><td class="n">96.30</td><td class="n">19.88</td></tr>
+      <tr><td>Quantum AE</td><td class="n">8</td><td class="n">64.91</td><td class="n">54.55</td><td class="n">28.57</td><td class="n">37.50</td><td class="n">129.38</td></tr>
+    </table></div>
+    <div class="note"><b>Reading.</b> No reduction method beats the raw 30 features. The autoencoder ties them. Enhanced QUMAP was <b>never run in this benchmark</b>, so it can't yet be compared with PCA or the AE. *The UMAP time includes first-call numba compilation; later stages show ≈1–2.5 s.</div>
+  </div>
+
+  <div class="panel" id="sB">
+    <div class="stage-head"><h3>Stage B: embedding quality on the 455 training patients</h3><span class="cell">cells 123, 126</span></div>
+    <div class="tw"><table>
+      <tr><th>Distance</th><th class="n">α</th><th class="n">Silhouette</th><th class="n">Trustworthiness (k=10)</th><th class="n">Fit time (s)</th></tr>
+      <tr><td>Classical UMAP</td><td class="n">0</td><td class="n">0.5399</td><td class="n">0.9472</td><td class="n">–</td></tr>
+      <tr><td>Hybrid</td><td class="n">0.25</td><td class="n">0.5803</td><td class="n">0.9469</td><td class="n">6.94</td></tr>
+      <tr class="hl"><td>Hybrid</td><td class="n">0.50</td><td class="n">0.6144</td><td class="n">0.9381</td><td class="n">7.44</td></tr>
+      <tr><td>Hybrid</td><td class="n">0.75</td><td class="n">0.6008</td><td class="n">0.9255</td><td class="n">9.12</td></tr>
+      <tr><td>Original QUMAP</td><td class="n">1</td><td class="n">0.0245</td><td class="n">0.7024</td><td class="n">8.32</td></tr>
+    </table></div>
+    <div class="bars" data-set="sB"></div>
+    <div class="note"><b>Reading.</b> The trade-off is clear: as α rises, silhouette goes up and trustworthiness goes down. These are train-set scores. <b>Run-to-run noise is about as large as the gaps between α values.</b> The identical α = 0.25 configuration gave 0.5803 in cell 126 and 0.5624 in cell 127.</div>
+  </div>
+
+  <div class="panel" id="sC">
+    <div class="stage-head"><h3>Stage C: held-out 114 patients, Logistic Regression</h3><span class="cell">cell 127</span></div>
+    <div class="bars" data-set="sC"></div>
+    <div class="stage-head" style="margin-top:22px"><h3>Stage D: 5 seeds (11, 21, 42, 73, 101), mean ± std</h3><span class="cell">cell 128</span></div>
+    <div class="tw"><table>
+      <tr><th>Method</th><th class="n">Test acc</th><th class="n">Recall (M)</th><th class="n">F1 (M)</th><th class="n">Train silhouette</th><th class="n">Train trust.</th><th class="n">Fit (s)</th></tr>
+      <tr><td>UMAP</td><td class="n">95.44 ± 0.39</td><td class="n">90.00 ± 1.06</td><td class="n">93.56 ± 0.59</td><td class="n">0.529 ± 0.008</td><td class="n">0.9466</td><td class="n">2.0</td></tr>
+      <tr><td>Hybrid α=0.25</td><td class="n">95.61 ± 0.00</td><td class="n">90.48 ± 0.00</td><td class="n">93.83 ± 0.00</td><td class="n">0.560 ± 0.005</td><td class="n">0.9453</td><td class="n">6.2</td></tr>
+      <tr class="hl"><td>Hybrid α=0.50</td><td class="n">95.09 ± 0.48</td><td class="n">89.05 ± 1.30</td><td class="n">93.03 ± 0.73</td><td class="n">0.624 ± 0.013</td><td class="n">0.9412</td><td class="n">6.6</td></tr>
+    </table></div>
+    <div class="note"><b>Reading.</b> All three methods sit within one test patient of each other (1 patient = 0.88 points). α = 0.50 has the best silhouette but the <i>lowest</i> test accuracy here. Original QUMAP under LR reached 68.42%.</div>
+  </div>
+
+  <div class="panel" id="sE">
+    <div class="stage-head"><h3>Stage E: leakage-safe 5-fold CV inside the 455 (scaler and scale refit per fold)</h3><span class="cell">cell 149</span></div>
+    <div class="tw"><table>
+      <tr><th>Method</th><th class="n">Accuracy</th><th class="n">Recall (M)</th><th class="n">F1 (M)</th><th class="n">Silhouette</th><th class="n">Trust.</th><th class="n">kNN overlap %</th></tr>
+      <tr><td>UMAP</td><td class="n">95.82 ± 3.24</td><td class="n">92.35 ± 5.34</td><td class="n">94.26 ± 4.49</td><td class="n">0.522</td><td class="n">0.9446</td><td class="n">53.19</td></tr>
+      <tr><td>Hybrid α=0.25</td><td class="n">95.82 ± 2.38</td><td class="n">91.18 ± 5.50</td><td class="n">94.16 ± 3.45</td><td class="n">0.565</td><td class="n">0.9435</td><td class="n">52.49</td></tr>
+      <tr class="hl"><td>Hybrid α=0.50</td><td class="n">95.82 ± 1.43</td><td class="n">92.35 ± 2.63</td><td class="n">94.30 ± 1.94</td><td class="n">0.618</td><td class="n">0.9387</td><td class="n">51.08</td></tr>
+      <tr><td>Hybrid α=0.75</td><td class="n">95.38 ± 1.81</td><td class="n">90.00 ± 4.46</td><td class="n">93.54 ± 2.66</td><td class="n">0.568</td><td class="n">0.9209</td><td class="n">48.15</td></tr>
+    </table></div>
+    <div class="note ok"><b>Best evidence in the notebook.</b> Accuracy is tied exactly. α = 0.50 shows <b>lower fold-to-fold variance</b> (std 1.43 against 3.24) and the best F1 by a hair. That stability, plus silhouette, is the defensible claim. kNN overlap (cell 152) measures how well each embedding keeps original neighbours, and UMAP keeps the most. An earlier version (cell 129) reused the global scaler, but cells 144–149 redo it per fold. Cell 144 re-standardises already-scaled data, which is mathematically identical to fold-wise scaling of the raw data, so it is clean.</div>
+  </div>
+
+  <div class="panel" id="sF">
+    <div class="stage-head"><h3>Stage F: final 500/69 split, LR, α = 0.50</h3><span class="cell">cells 161, 165, 172, 178</span></div>
+    <div class="tw"><table>
+      <tr><th>Method</th><th class="n">10-D test acc (69)</th><th class="n">Errors</th><th class="n">2-D test acc (69)</th><th class="n">OOF + test, all 569</th><th class="n">Errors /569</th></tr>
+      <tr><td>Classical UMAP</td><td class="n">97.10</td><td class="n">2</td><td class="n">97.10</td><td class="n">96.49</td><td class="n">20</td></tr>
+      <tr><td>Original QUMAP</td><td class="n">72.46</td><td class="n">19</td><td class="n">60.87</td><td class="n">69.77</td><td class="n">172</td></tr>
+      <tr class="hl"><td>Enhanced QUMAP</td><td class="n">98.55</td><td class="n">1</td><td class="n">98.55</td><td class="n">95.78</td><td class="n">24</td></tr>
+    </table></div>
+    <div class="tw"><table>
+      <tr><th>10-D embedding</th><th class="n">Silhouette train</th><th class="n">Trust. train</th><th class="n">Silhouette test</th><th class="n">Trust. test</th><th class="n">Top-10 overlap train</th></tr>
+      <tr><td>Classical UMAP</td><td class="n">0.5217</td><td class="n">0.9453</td><td class="n">0.5252</td><td class="n">0.9105</td><td class="n">50.42%</td></tr>
+      <tr><td>Original QUMAP</td><td class="n">0.0275</td><td class="n">0.7047</td><td class="n">0.0071</td><td class="n">0.6202</td><td class="n">33.08%</td></tr>
+      <tr class="hl"><td>Enhanced QUMAP</td><td class="n">0.6171</td><td class="n">0.9377</td><td class="n">0.6636</td><td class="n">0.8911</td><td class="n">48.06%</td></tr>
+    </table></div>
+    <div class="note bad"><b>Reading.</b> On 69 patients, 98.55 vs 97.10 is a one-patient difference. The larger out-of-fold evaluation reverses the order. A McNemar test on these predictions would not be significant (at most 1 discordant pair favouring the hybrid on test).</div>
+  </div>
+</section>
+
+<section id="audit">
+  <h2>Validation audit</h2>
+  <p class="sub">Each check is answered from the notebook code.</p>
+  <div class="tw"><table>
+    <tr><th style="width:30%">Check</th><th style="width:11%">Status</th><th>Evidence</th></tr>
+    <tr><td>Scaler fitted on training data only</td><td><span class="st s-ok">pass</span></td><td>Stage A: <code>fit_transform(X_train)</code> → <code>transform(X_test)</code> (cell 6; 455 samples confirmed in cell 133). Fold-wise scalers in cells 144, 145, 149, 162.</td></tr>
+    <tr><td>DR model fitted without test data</td><td><span class="st s-ok">pass</span></td><td>All UMAP variants use <code>fit_transform(train)</code> + <code>transform(test)</code> with a callable metric, not a precomputed matrix (cells 10, 127, 157).</td></tr>
+    <tr><td>D<sub>E</sub> scale from training data only</td><td><span class="st s-ok">pass</span></td><td>Median or mean computed on training/fold-training pairs (cells 126, 145, 149, 157).</td></tr>
+    <tr><td>α selection leakage</td><td><span class="st s-verify">minor</span></td><td>The α CV (cell 149) runs on the 455 pool, which shares no patients with the final 69 <span class="st s-miss">verified here</span>. But the 114 test patients that contain them were evaluated across α in cells 127–128, and the reason for picking 0.50 over the tied 0.25 isn't recorded. Write the rule down (e.g. "highest CV silhouette at equal accuracy").</td></tr>
+    <tr><td>Test-set reuse</td><td><span class="st s-verify">minor</span></td><td>The same 114 patients appear in Stages A, C and D. Make CV and OOF the primary evidence, with the single split secondary.</td></tr>
+    <tr><td>Consistent protocol across methods</td><td><span class="st s-risk">fail</span></td><td>The 6-method benchmark uses RBF-SVM. The hybrid experiments use LR. Enhanced QUMAP never appears in the 6-method table, and QAE is 8-D while the others are 10-D.</td></tr>
+    <tr><td>Consistent D<sub>E</sub> normalisation</td><td><span class="st s-verify">inconsistent</span></td><td>Median in cells 126–145, mean in 149–177. Pick one for the paper and re-run.</td></tr>
+    <tr><td>Reproducibility</td><td><span class="st s-verify">noisy</span></td><td>The same config gave silhouette 0.5803 vs 0.5624 (cells 126/127). Report mean ± std, never a single run.</td></tr>
+    <tr><td>Graph-stage preprocessing</td><td><span class="st s-verify">note</span></td><td>Cells 166–168 fit the scaler and D<sub>E</sub> scale on all 569 patients. That's acceptable for unsupervised descriptive graphs, but state it.</td></tr>
+    <tr><td>Silhouette uses diagnosis labels</td><td><span class="st s-verify">note</span></td><td>Silhouette measures class separation in the embedding. It is not an unsupervised quality score, so describe it as "label separation".</td></tr>
+    <tr><td>Brief vs notebook</td><td><span class="st s-verify">correct</span></td><td>There are 5 seeds (101 is included), not 4. The 98.55% figure appears in both 10-D (cell 161) and 2-D (cell 178).</td></tr>
+  </table></div>
+</section>
+
+<section id="graphs">
+  <h2>Patient similarity graphs</h2>
+  <p class="sub">Each graph is UMAP's fuzzy k-NN graph (<code>model.graph_</code>, n_neighbors = 15) built on all 569 standardised patients and loaded into NetworkX <span class="cell">cells 181–200</span>.</p>
+  <div class="tw"><table>
+    <tr><th>Graph</th><th class="n">Nodes</th><th class="n">Edges</th><th class="n">Avg degree</th><th class="n">Weighted degree</th><th class="n">Density</th><th class="n">Components</th><th class="n">Clustering</th><th class="n">Degree min / max / std</th></tr>
+    <tr><td>Classical UMAP</td><td class="n">569</td><td class="n">5900</td><td class="n">20.74</td><td class="n">6.53</td><td class="n">0.0365</td><td class="n">1</td><td class="n">0.1124</td><td class="n">14 / 49 / 5.60</td></tr>
+    <tr><td>Original QUMAP</td><td class="n">569</td><td class="n">5864</td><td class="n">20.61</td><td class="n">6.67</td><td class="n">0.0363</td><td class="n">1</td><td class="n">0.1028</td><td class="n">14 / 42 / 5.80</td></tr>
+    <tr class="hl"><td>Enhanced QUMAP</td><td class="n">569</td><td class="n">5658</td><td class="n">19.89</td><td class="n">6.64</td><td class="n">0.0350</td><td class="n">1</td><td class="n">0.1196</td><td class="n">14 / 38 / 4.94</td></tr>
+  </table></div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>What the numbers establish</h3>
+      <ul class="clean">
+        <li><b>Edges, degree, density:</b> mostly fixed by construction. Minimum degree is 14 (= k − 1) in every graph, so the 3–4% differences are small by design.</li>
+        <li><b>Clustering 0.120 vs 0.112:</b> the hybrid's neighbourhoods are slightly more closed (triangles), which fits its higher silhouette.</li>
+        <li><b>Max degree 38 vs 49, lower std:</b> the hybrid graph is more evenly connected and less dominated by hubs.</li>
+        <li><b>Hub overlap:</b> 3 of the top-10 hubs are shared between UMAP and Enhanced QUMAP (P075, P250, P325). Original QUMAP shares 1 with each, and no hub appears in all three.</li>
+      </ul></div>
+    <div class="card"><h3>What they don't establish</h3>
+      <ul class="clean">
+        <li>A hub is a patient in a dense region of the embedding. That says nothing about clinical importance.</li>
+        <li>Hub agreement between methods shows they agree with each other, not that either is correct.</li>
+        <li>No graph metric here uses the diagnosis. Adding <b>edge homophily</b> (the share of same-diagnosis edges) and the malignant share among hubs would tie the graphs to the task.</li>
+      </ul></div>
+  </div>
+</section>
+
+<section id="novelty">
+  <h2>What is actually new</h2>
+  <p class="sub">A split between what's established and what this work adds, so the claims survive review.</p>
+  <div class="grid g2">
+    <div class="card"><span class="tag t-c">Existing / standard</span>
+      <ul class="clean">
+        <li>UMAP with custom metrics</li>
+        <li>Amplitude encoding and pure-state fidelity (= cos² for real vectors)</li>
+        <li>Convex combinations of distances</li>
+        <li>QPCA-inspired = PCA (identical outputs)</li>
+        <li>Variational quantum autoencoders (here simulated and unconverged)</li>
+      </ul></div>
+    <div class="card" style="border-color:var(--accent)"><span class="tag t-h">Defensible contribution</span>
+      <ul class="clean">
+        <li><b>A quantified failure analysis</b> of fidelity distance on standardised clinical data: sign invariance, ρ = 0.08 with Euclidean, 49% neighbour agreement, a 20-point drop in same-class neighbours, and collapse to all-benign predictions</li>
+        <li><b>A hybrid fix</b> that restores UMAP-level accuracy, raises label separation by about 0.04–0.10 silhouette, and lowers fold variance</li>
+        <li><b>A characterised α trade-off:</b> silhouette ↑ / trustworthiness ↓</li>
+        <li><b>A patient-graph comparison</b> of how the distance reshapes connectivity</li>
+      </ul></div>
+  </div>
+  <div class="note bad"><b>Claims to avoid.</b> "Enhanced QUMAP outperforms UMAP" (not supported under CV or OOF), "quantum advantage", or "quantum speed-up". Everything runs classically, and the hybrid is about 3× slower.</div>
+</section>
+
+<section id="paper">
+  <h2>Roadmap</h2>
+  <p class="sub">These are minimal, focused changes, and none of them is applied yet. They wait for your approval.</p>
+  <div class="grid g2" style="margin-bottom:30px">
+    <div class="card"><h3>Priority (strengthens the existing claims)</h3>
+      <ul class="clean">
+        <li><b>1.</b> Re-run the Stage E CV with one normalisation and the full grid α ∈ {0, 0.25, 0.5, 0.75, 1}. This puts UMAP and fidelity-only QUMAP into the same loop as built-in endpoints.</li>
+        <li><b>2.</b> Repeat that CV over the 5 seeds (5 × 5 = 25 runs per α) and add a paired Wilcoxon test vs UMAP.</li>
+        <li><b>3.</b> McNemar test on the existing all-569 OOF predictions (already in <code>final_master_table</code>).</li>
+        <li><b>4.</b> Add Enhanced QUMAP to the Stage A SVM benchmark so it's comparable with PCA and the AE.</li>
+        <li><b>5.</b> Record the α-selection rule.</li>
+      </ul></div>
+    <div class="card"><h3>Cheap ablations</h3>
+      <ul class="clean">
+        <li><b>Cosine distance</b> (1 − cos θ, sign-aware) in place of fidelity. This tests whether the quantum squaring helps or hurts.</li>
+        <li><b>Scale matching:</b> report the effective weight of each term, or rescale D<sub>E</sub> to [0, 1] as a variant.</li>
+        <li><b>Edge homophily</b> for the three graphs.</li>
+        <li>Note the QAE's limits (100-sample training, unconverged) in Limitations rather than fixing them. It's not the paper's focus.</li>
+      </ul></div>
+  </div>
+  <div class="grid g2 paper">
+    <div class="card"><h3>Research problem</h3><p>Fidelity-only QUMAP collapses on standardised clinical data. Can a hybrid distance recover it?</p></div>
+    <div class="card"><h3>Motivation</h3><p>Quantum-inspired similarity is widely proposed, but its geometric failure modes on real tabular data are rarely measured.</p></div>
+    <div class="card"><h3>Literature review</h3><p>UMAP; quantum kernels and fidelity; QPCA; quantum autoencoders; metric combination; patient similarity networks.</p></div>
+    <div class="card"><h3>Methodology</h3><p>Amplitude encoding → D<sub>Q</sub>, D<sub>E</sub>, D<sub>H</sub> → UMAP with a callable metric (fit on train, transform test) → LR/SVM.</p></div>
+    <div class="card"><h3>Formulation</h3><p>F = cos²θ, sign and magnitude invariance, train-only scale s, effective weighting, metric properties.</p></div>
+    <div class="card"><h3>Experimental setup</h3><p>WDBC, fold-wise scaling, 5 seeds × 5 folds, α grid, metric definitions, software versions.</p></div>
+    <div class="card"><h3>Results &amp; discussion</h3><p>Failure diagnosis, α trade-off curve, CV mean ± std with tests, graphs. The 69-patient split goes in as a supplement.</p></div>
+    <div class="card"><h3>Limitations</h3><p>One small dataset, classical simulation, O(n²) Python metric, no accuracy gain over UMAP, unconverged QAE.</p></div>
+    <div class="card"><h3>Conclusion</h3><p>The hybrid matches UMAP accuracy and improves label separation and stability. Fidelity alone is unsuitable.</p></div>
+    <div class="card"><h3>Future work</h3><p>More clinical datasets, numba-compiled metric, learned or adaptive α, hardware fidelity estimation.</p></div>
+  </div>
+</section>
+
+</main>
+
+<footer class="wrap">Enhanced QUMAP research portal · audited against Untitled.ipynb (201 cells) on 17 Nov 2026. All figures come from notebook outputs unless tagged "verified here".</footer>
+
+<script>
+const data={
+ sA:[["Original 30 features",97.37,"g"],["Autoencoder",97.37,"c"],["PCA",96.49,"c"],["QPCA-inspired",96.49,"q"],["UMAP",93.86,"c"],["Quantum AE",64.91,"q"],["Original QUMAP",63.16,"q"]],
+ sB:[["Hybrid α = 0.50",0.6144,"h"],["Hybrid α = 0.75",0.6008,"h"],["Hybrid α = 0.25",0.5803,"h"],["Classical UMAP",0.5399,"c"],["Original QUMAP",0.0245,"q"]],
+ sC:[["UMAP",95.61,"c"],["Hybrid α = 0.25",95.61,"h"],["Hybrid α = 0.50",95.61,"h"],["Fidelity QUMAP",68.42,"q"]]
+};
+function render(key){
+  const el=document.querySelector(`.bars[data-set="${key}"]`); if(!el||el.dataset.done)return;
+  const isSil=key==="sB"; const max=isSil?1:100;
+  el.innerHTML=data[key].map(([n,v,t])=>`<div class="bar"><span>${n}</span><div class="track"><div class="fill f-${t}" style="width:0" data-w="${v/max*100}"></div></div><span class="val">${isSil?v.toFixed(4):v.toFixed(2)+"%"}</span></div>`).join("");
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.querySelectorAll(".fill").forEach(f=>f.style.width=f.dataset.w+"%")));
+  el.dataset.done=1;
+}
+render("sA");
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("on",p.id===b.dataset.p));
+  render(b.dataset.p);
+});
+
+const $=id=>document.getElementById(id);
+const svg=$("curve"), W=520,H=260,L=44,R=16,T=16,B=36;
+const xs=t=>L+(W-L-R)*t/180, ys=v=>T+(H-T-B)*(1-v);
+function drawStatic(){
+  let s="";
+  [0,0.25,0.5,0.75,1].forEach(v=>{s+=`<line x1="${L}" x2="${W-R}" y1="${ys(v)}" y2="${ys(v)}" stroke="var(--line)"/><text x="${L-8}" y="${ys(v)+4}" text-anchor="end">${v}</text>`});
+  [0,45,90,135,180].forEach(t=>{s+=`<text x="${xs(t)}" y="${H-B+18}" text-anchor="middle">${t}°</text>`});
+  let p="",c="";
+  for(let t=0;t<=180;t+=2){const r=t*Math.PI/180;p+=(t?"L":"M")+xs(t)+","+ys(Math.sin(r)**2);c+=(t?"L":"M")+xs(t)+","+ys((1-Math.cos(r))/2)}
+  s+=`<path d="${c}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  s+=`<path d="${p}" fill="none" stroke="var(--q)" stroke-width="2.5"/>`;
+  s+=`<text x="${xs(100)}" y="${ys(0.98)}" style="fill:var(--q)">D_Q = sin²θ</text>`;
+  s+=`<text x="${xs(118)}" y="${ys(0.62)}">(1−cosθ)/2 · sign-aware</text>`;
+  s+=`<text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle">angle θ between normalised patient vectors</text>`;
+  s+=`<line id="hl" stroke="var(--accent)" stroke-width="1.5"/><circle id="pt" r="6" fill="var(--accent)"/>`;
+  svg.innerHTML=s;
+}
+function update(){
+  const t=+$("theta").value, de=+$("de").value/100, a=+$("alpha").value/100;
+  const dq=Math.sin(t*Math.PI/180)**2, dh=a*dq+(1-a)*de;
+  $("oTheta").textContent=t+"°"; $("oDE").textContent=de.toFixed(2); $("oA").textContent=a.toFixed(2);
+  $("vQ").textContent=dq.toFixed(3); $("vE").textContent=de.toFixed(3); $("vH").textContent=dh.toFixed(3);
+  const hl=$("hl"),pt=$("pt");
+  hl.setAttribute("x1",xs(t));hl.setAttribute("x2",xs(t));hl.setAttribute("y1",ys(0));hl.setAttribute("y2",ys(1));
+  pt.setAttribute("cx",xs(t));pt.setAttribute("cy",ys(dq));
+  const share=(a*dq+(1-a)*de)>0?(a*dq)/(a*dq+(1-a)*de):0;
+  $("hint").textContent= (t>150 ? "Near-opposite vectors: fidelity calls them almost identical (D_Q → 0). Only the Euclidean term keeps them apart. "
+    : t<30 ? "Similar directions: D_Q is small, so any magnitude difference shows up only in D_E. "
+    : "Fidelity peaks at 90° and falls again beyond it, symmetric around orthogonal. ")
+    + `Here the fidelity term contributes ${(share*100).toFixed(0)}% of D_H.`;
+}
+drawStatic();["theta","de","alpha"].forEach(i=>$(i).addEventListener("input",update));update();
+
+const links=[...document.querySelectorAll("nav a")];
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)links.forEach(l=>l.classList.toggle("on",l.getAttribute("href")==="#"+e.target.id))}),{rootMargin:"-40% 0px -55% 0px"});
+document.querySelectorAll("section[id]").forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
